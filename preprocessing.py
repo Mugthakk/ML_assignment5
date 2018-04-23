@@ -2,15 +2,21 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from os import walk
 import numpy as np
+from skimage.viewer.plugins import canny
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import scale
+from skimage.feature import canny
 
 
-def get_image_tuples():
+def get_image_tuples(use_edge_detection=True):
     train_vectors, train_labels = [], []
     for dirpath, dirnames, filenames in walk("./chars74k-lite"):
         for filename in filenames:
             pic = np.array(Image.open(dirpath+"/"+filename))
+
+            if use_edge_detection:
+                # Canny does edge-detection and returns array of true/false for pixel with edge
+                pic = np.vectorize(lambda x: int(x))(canny(pic))
 
             # Reshape to single vector, general statement but second arument could just be 20*20=400 for us
             pic_as_array = np.reshape(pic, len(pic[0]) * len(pic))
@@ -46,6 +52,8 @@ if __name__ == "__main__":
     # A list of np.array of 0-1 floats indicating pixel density for each on index i corresponds to label on index i
     train_vectors, train_labels = get_image_tuples()
 
+    display_image(train_vectors[0], 20, 20, False)
+
     # Dimension of each np.array with floats reduced from 400 to 100
     reduced_dim_train_vectors = pca_reduce_dims(train_vectors, 100)
 
@@ -54,4 +62,4 @@ if __name__ == "__main__":
     train_set, test_set = train_tuples[:int(len(train_tuples)*0.8)], train_tuples[int(len(train_tuples)*0.8):]
 
     # Test that we can map it back again:
-    display_image(train_set[0][0])
+    display_image(train_set[0][0], 10, 10, False)
