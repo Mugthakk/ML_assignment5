@@ -5,18 +5,21 @@ import numpy as np
 from skimage.viewer.plugins import canny
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import scale
-from skimage.feature import canny
+from skimage.feature import canny, hog
 
 
-def get_image_tuples(use_edge_detection=True):
+def get_image_tuples(method="edge"):
     train_vectors, train_labels = [], []
     for dirpath, dirnames, filenames in walk("./chars74k-lite"):
         for filename in filenames:
             pic = np.array(Image.open(dirpath+"/"+filename))
 
-            if use_edge_detection:
+            if method == "edge":
                 # Canny does edge-detection and returns array of true/false for pixel with edge
                 pic = np.vectorize(lambda x: int(x))(canny(pic))
+            elif method == "hog":
+                # use HOG (http://scikit-image.org/docs/dev/auto_examples/features_detection/plot_hog.html)
+                feature_descriptor, pic = hog(pic, orientations=1, pixels_per_cell=(2,2), cells_per_block=(1,1), visualise=True)
 
             # Reshape to single vector, general statement but second arument could just be 20*20=400 for us
             pic_as_array = np.reshape(pic, len(pic[0]) * len(pic))
@@ -50,7 +53,7 @@ def display_image(image, original_width=20, original_height=20, zero_one_interva
 
 if __name__ == "__main__":
     # A list of np.array of 0-1 floats indicating pixel density for each on index i corresponds to label on index i
-    train_vectors, train_labels = get_image_tuples()
+    train_vectors, train_labels = get_image_tuples(method="edge")
 
     display_image(train_vectors[0], 20, 20, False)
 
