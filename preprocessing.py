@@ -3,6 +3,7 @@ from PIL import Image
 from os import walk
 import numpy as np
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import scale
 
 
 def get_image_tuples():
@@ -13,11 +14,11 @@ def get_image_tuples():
 
             # Reshape to single vector, general statement but second arument could just be 20*20=400 for us
             pic_as_array = np.reshape(pic, len(pic[0]) * len(pic))
-            # Map onto 0-1 interval using simple division TODO: map smarter way?
-            pic_as_array = np.vectorize(lambda p: p/255.0)(pic_as_array)
 
             train_vectors.append(pic_as_array)
             train_labels.append(filename[0])
+    # Scale to get zero mean and unit variance TODO: vurder minMaxScale som gir 0-1 verdier, evt. bare np.vectorize på hvert pic og del på 255.0
+    scale(train_vectors)
     return train_vectors, train_labels
 
 
@@ -49,8 +50,8 @@ if __name__ == "__main__":
     reduced_dim_train_vectors = pca_reduce_dims(train_vectors, 100)
 
     # Combine to split data set for ML
-    train_tuples = np.array([(reduced_dim_train_vectors[i], train_labels[i] for i in range(len(train_labels)))])
-    train_set, test_set = train_tuples[:len(train_tuples)*0.8], train_tuples[train_tuples[:len(train_tuples)*0.8]:]
+    train_tuples = np.array([(reduced_dim_train_vectors[i], train_labels[i]) for i in range(len(train_labels))])
+    train_set, test_set = train_tuples[:int(len(train_tuples)*0.8)], train_tuples[int(len(train_tuples)*0.8):]
 
     # Test that we can map it back again:
     display_image(train_set[0][0])
