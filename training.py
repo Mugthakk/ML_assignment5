@@ -30,13 +30,6 @@ test_features = {str(i): np.array([train_set[j][0][i] for j in range(len(test_se
 train_labels = np.array([ord(train_set[i][1])-97 for i in range(len(train_set))])
 test_labels = np.array([ord(test_set[i][1])-97 for i in range(len(test_set))])
 
-
-def input_fn(features, labels, batch_size):
-    dataset = tf.data.Dataset.from_tensor_slices((features, labels))
-    dataset.shuffle(1000).repeat().batch(batch_size)
-    return dataset
-
-
 #train_spec = tf.estimator.TrainSpec(input_fn=lambda:input_fn(train_features, train_labels, 128))
 train_input_fn = tf.estimator.inputs.numpy_input_fn({str(i): train_features[str(i)] for i in range(len(train_features))}, train_labels,
                                     batch_size=128, num_epochs=1, shuffle=True, queue_capacity=512)

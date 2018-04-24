@@ -65,6 +65,8 @@ if __name__ == "__main__":
 
     # Combine to split data set for ML
     train_tuples = np.array([(reduced_dim_train_vectors[i], train_labels[i]) for i in range(len(train_labels))])
+    np.random.seed(81549300)
+    np.random.shuffle(train_tuples)
     train_set, test_set = train_tuples[:int(len(train_tuples)*0.8)], train_tuples[int(len(train_tuples)*0.8):]
 
     # Test that we can map it back again:
