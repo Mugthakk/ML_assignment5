@@ -1,3 +1,4 @@
 *.pickle
 .idea
+savedmodels
 chars74k-lite
