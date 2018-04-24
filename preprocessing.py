@@ -2,10 +2,10 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from os import walk
 import numpy as np
-from skimage.viewer.plugins import canny
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import scale
+# from sklearn.preprocessing import scale, minmax_scale
 from skimage.feature import canny, hog
+import _pickle as pickle
 
 
 def get_image_tuples(method="edge"):
@@ -19,14 +19,13 @@ def get_image_tuples(method="edge"):
                 pic = np.vectorize(lambda x: int(x))(canny(pic))
             elif method == "hog":
                 # use HOG (http://scikit-image.org/docs/dev/auto_examples/features_detection/plot_hog.html)
-                feature_descriptor, pic = hog(pic, orientations=1, pixels_per_cell=(2,2), cells_per_block=(1,1), visualise=True)
+                feature_descriptor, pic = hog(pic, orientations=4, pixels_per_cell=(2,2), cells_per_block=(1,1), visualise=True)
 
             # Reshape to single vector, general statement but second arument could just be 20*20=400 for us
             pic_as_array = np.reshape(pic, len(pic[0]) * len(pic))
             train_vectors.append(pic_as_array)
-            train_labels.append(one_hot_encoding_alphabet_char(filename[0]))
-    # Scale to get zero mean and unit variance TODO: vurder minMaxScale som gir 0-1 verdier, evt. bare np.vectorize på hvert pic og del på 255.0
-    scale(train_vectors)
+            train_labels.append(filename[0])
+    train_vectors = np.vectorize(lambda x: x/255.0)(train_vectors)
     return train_vectors, train_labels
 
 
@@ -44,14 +43,14 @@ def pca_reduce_dims(image_vectors, new_n_features):
 
 def one_hot_encoding_alphabet_char(char_to_encode):
     # ord("a") = 97, hence a is 0
-    return np.array([int(bool(x == ord(char_to_encode)-97)) for x in range(26)])
+    return np.array([int(x == ord(char_to_encode)-97) for x in range(26)])
 
 
 def display_image(image, original_width=20, original_height=20, zero_one_interval=True):
     if zero_one_interval:
         image = np.vectorize(lambda p: p*255)(image)
-    plt.gray()
     plt.matshow(np.reshape(image, (original_width, original_height)))
+    plt.gray()
     plt.show()
 
 
@@ -70,3 +69,7 @@ if __name__ == "__main__":
 
     # Test that we can map it back again:
     display_image(train_set[0][0], 10, 10, False)
+
+    # Pickle the preprocessed data so we do not need to preprocess before training
+    pickle.dump(train_set, open("train_set.pickle", "wb"))
+    pickle.dump(test_set, open("test_set.pickle", "wb"))
