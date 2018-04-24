@@ -23,9 +23,8 @@ def get_image_tuples(method="edge"):
 
             # Reshape to single vector, general statement but second arument could just be 20*20=400 for us
             pic_as_array = np.reshape(pic, len(pic[0]) * len(pic))
-
             train_vectors.append(pic_as_array)
-            train_labels.append(filename[0])
+            train_labels.append(one_hot_encoding_alphabet_char(filename[0]))
     # Scale to get zero mean and unit variance TODO: vurder minMaxScale som gir 0-1 verdier, evt. bare np.vectorize på hvert pic og del på 255.0
     scale(train_vectors)
     return train_vectors, train_labels
@@ -41,6 +40,11 @@ def pca_reduce_dims(image_vectors, new_n_features):
     '''
     pca = PCA(n_components=new_n_features)
     return pca.fit_transform(image_vectors)
+
+
+def one_hot_encoding_alphabet_char(char_to_encode):
+    # ord("a") = 97, hence a is 0
+    return np.array([int(bool(x == ord(char_to_encode)-97)) for x in range(26)])
 
 
 def display_image(image, original_width=20, original_height=20, zero_one_interval=True):
