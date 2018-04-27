@@ -24,7 +24,7 @@ test_labels = np.asarray(test_labels, dtype=np.int32)
 
 classifier = tf.estimator.Estimator(
     model_fn=cnn_model_fn,
-    model_dir="savedmodels/",
+    model_dir="savedmodels2/",
 )
 
 tensors_to_log = {"probabilities", "softmax_tensor"}

@@ -59,7 +59,7 @@ def get_train_test_set():
 
     # Dimension of each np.array with floats reduced from 400 to 100
     reduced_dim_train_vectors = pca_reduce_dims(train_vectors, 100)
-    reduced_dim_train_vectors = train_vectors
+    #reduced_dim_train_vectors = train_vectors
 
     # Combine to split data set for ML
     train_tuples = np.array([(reduced_dim_train_vectors[i], train_labels[i]) for i in range(len(train_labels))])

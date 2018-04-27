@@ -6,7 +6,7 @@ def cnn_model_fn(features, labels, mode):
     # reshape -1 is the batch_size, dynamically computed based on number of inputs in features["x"] when -1 passed
     # 20, 20 bases itself on inputs having size 20x20
     # 1 is the number of channels per pixel, greyscale means one
-    input_layer = tf.reshape(features["x"], [-1, 20, 20, 1])
+    input_layer = tf.reshape(features["x"], [-1, 10, 10, 1])
 
     # Applying 32 4x4 filters to the input (single value means square input images)
     # Output is of shape [batch_size, 20, 20, 32]
@@ -50,7 +50,7 @@ def cnn_model_fn(features, labels, mode):
 
     # Flatten the pool2 outputs as pool2-width * pool2-height * pool2-channels
     # Output is of size [batch_size, 1600]
-    pool2_flat = tf.reshape(pool2, [-1, 18 * 18 * 64])
+    pool2_flat = tf.reshape(pool2, [-1, 8 * 8 * 64])
 
     # Inputs the flattened pool-values into a dense layer of neurons with an activation function
     # Output is of shape [batch_size, 1024]
