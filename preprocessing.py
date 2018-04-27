@@ -55,12 +55,8 @@ def display_image(image, original_width=20, original_height=20, zero_one_interva
 
 
 def get_train_test_set():
-<<<<<<< HEAD
-    train_vectors, train_labels = get_image_tuples(method="hog")
-=======
-    train_vectors, train_labels = get_image_tuples(method="none")
->>>>>>> bc35c2b62984b6e69c4e255dcb999b5dfaab1704
 
+    train_vectors, train_labels = get_image_tuples(method="hog")
     # Dimension of each np.array with floats reduced from 400 to 100
     reduced_dim_train_vectors = pca_reduce_dims(train_vectors, 100)
     #reduced_dim_train_vectors = train_vectors
