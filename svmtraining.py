@@ -1,27 +1,33 @@
 import numpy as np
-import _pickle as pickle
 import numpy as np
 import matplotlib.pyplot as plt
 import itertools
 from sklearn.metrics import confusion_matrix
 from sklearn.svm import SVC
+from preprocessing import *
 
-with open("train_set.pickle", "rb") as p:
-    train_set = pickle.load(p)
+train_set, test_set = get_train_test_set()
 
-with open("test_set.pickle", "rb") as p:
-    test_set = pickle.load(p)
 
 train_features = np.array([train_set[i][0] for i in range(len(train_set))])
 test_features = np.array([test_set[i][0] for i in range(len(test_set))])
-train_labels = np.array([ord(train_set[i][1])-97 for i in range(len(train_set))])
-test_labels = np.array([ord(test_set[i][1])-97 for i in range(len(test_set))])
+train_labels = np.array([train_set[i][1] for i in range(len(train_set))])
+test_labels = np.array([test_set[i][1] for i in range(len(test_set))])
 
-# TODO be less shitty
-svc = SVC(kernel = 'linear', C=0.2)
+# Love linear kernel, pca makes no difference , hog
+# kernel = 'rbf' will perform badly
+svc = SVC(kernel='linear', C=0.85)
 svc.fit(X=train_features, y=train_labels)  # train the model
 y_prediction_svc_train = svc.predict(train_features)
 y_prediction_svc_test = svc.predict(test_features)
+
+
+def eval_accuracy(true_label, pred_label):
+    correct = 0
+    for i in range(len(true_label)):
+        if true_label[i] == pred_label[i]:
+            correct += 1
+    return correct/len(true_label)
 
 
 # TODO plot the data less retarded
@@ -30,7 +36,7 @@ def plot_confusion_matrix(cm, title='results', cmap=plt.cm.Reds):
                '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20',
                '20', '21', '22', '23', '24', '25']
     cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-    plt.imshow(cm, interpolation='gaussian', cmap=cmap)
+    plt.imshow(cm, cmap=cmap)
     plt.title(title)
     plt.colorbar()
     tick_marks = np.arange(len(classes))
@@ -48,6 +54,6 @@ def plot_confusion_matrix(cm, title='results', cmap=plt.cm.Reds):
     plt.xlabel('Predicted label')
     plt.show()
 
-cnf_matrix = confusion_matrix(train_labels, y_prediction_svc_train)
-print(cnf_matrix)
+cnf_matrix = confusion_matrix(test_labels, y_prediction_svc_test)
+print(eval_accuracy(test_labels,y_prediction_svc_test))
 plot_confusion_matrix(cnf_matrix)
