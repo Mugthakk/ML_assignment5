@@ -1,44 +1,47 @@
 import tensorflow as tf
 import numpy as np
-import _pickle as pickle
+from preprocessing import get_train_test_set
+from cnn import cnn_model_fn
 
-with open("train_set.pickle", "rb") as p:
-    train_set = pickle.load(p)
-
-with open("test_set.pickle", "rb") as p:
-    test_set = pickle.load(p)
-
+train_set, test_set = get_train_test_set()
 sess = tf.Session(config=tf.ConfigProto(log_device_placement=True, allow_soft_placement=True))
 
-classifier = tf.estimator.DNNClassifier(
-    hidden_units=[75, 50, 35],
-    n_classes=26,
-    feature_columns=[tf.feature_column.numeric_column(key=str(i)) for i in range(len(train_set[0][0]))],
-    model_dir="savedmodels/",
-    optimizer=tf.train.ProximalAdagradOptimizer(
-        learning_rate=0.1,
-        initial_accumulator_value=0.1,
-        l1_regularization_strength=0.1,
-        l2_regularization_strength=0.1,
-        use_locking=False,
-        name='ProximalAdagrad'
-    )
+classifier = tf.estimator.Estimator(
+    model_fn=cnn_model_fn,
+    model_dir="/savedmodels",
 )
 
-train_features = {str(i): np.array([train_set[j][0][i] for j in range(len(train_set))]) for i in range(len(train_set[0][0]))}
-test_features = {str(i): np.array([train_set[j][0][i] for j in range(len(test_set))]) for i in range(len(test_set[0][0]))}
-train_labels = np.array([ord(train_set[i][1])-97 for i in range(len(train_set))])
-test_labels = np.array([ord(test_set[i][1])-97 for i in range(len(test_set))])
+tensors_to_log = {"probabilities", "softmax_tensor"}
+logging_hook = tf.train.LoggingTensorHook(
+    tensors=tensors_to_log,
+    every_n_iter=50,
+)
 
-#train_spec = tf.estimator.TrainSpec(input_fn=lambda:input_fn(train_features, train_labels, 128))
-train_input_fn = tf.estimator.inputs.numpy_input_fn({str(i): train_features[str(i)] for i in range(len(train_features))}, train_labels,
-                                    batch_size=128, num_epochs=1, shuffle=True, queue_capacity=512)
-eval_input_fn = tf.estimator.inputs.numpy_input_fn({str(i): test_features[str(i)] for i in range(len(test_features))}, test_labels,
-                                    batch_size=128, num_epochs=1, shuffle=False, queue_capacity=512)
-#eval_spec = tf.estimator.EvalSpec(input_fn=lambda:input_fn(test_features, test_labels, 128))
+train_input_fn = tf.estimator.inputs.numpy_input_fn(
+    x={"x": train_set[:, 0]},
+    y=train_set[:, 1],
+    batch_size=100,
+    num_epochs=None,
+    shuffle=True,
+    queue_capacity=200,
+)
+
+eval_input_fn = tf.estimator.inputs.numpy_input_fn(
+    x={"x": test_set[:, 0]},
+    y=test_set[:, 1].astype(np.int32),
+    batch_size=100,
+    num_epochs=1,
+    shuffle=False,
+    queue_capacity=200,
+)
 
 train_spec = tf.estimator.TrainSpec(input_fn=train_input_fn)
 eval_spec = tf.estimator.EvalSpec(input_fn=eval_input_fn)
 
-tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
-classifier.export_savedmodel("savedmodels/")
+classifier.train(
+    input_fn=train_input_fn,
+    steps=20000,
+    hooks=[logging_hook]
+)
+
+#tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
