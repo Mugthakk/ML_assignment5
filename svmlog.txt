@@ -1,0 +1,8 @@
+svm 0.600843288826423  hog, no pca, c = 1 , linear kernel, degree = 3
+svm 0.600843288826423  hog, no pca, c = 1 , linear kernel, degree = 4
+svm 0.59....           hog, no pca, c = 1.1 , linear kernel, degree = 3
+svm 0.6043569922698524 hog, no pca, c = 0.9 , linear kernel, degree = 3
+svm 0.607167955024596  hog, no pca, c = 0.85 , linear kernel, degree = 3
+svm 0.607167955024596  hog,pca 100, c = 0.85 , linear kernel, degree = 3
+svm total shit         hog, pca 10, c = 0.85 , linear kernel, degree = 3
+svm 0.6057624736472241 hog, no pca, c = 0.80 , linear kernel, degree = 3
