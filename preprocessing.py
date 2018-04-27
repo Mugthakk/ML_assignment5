@@ -58,7 +58,7 @@ def get_train_test_set():
     train_vectors, train_labels = get_image_tuples(method="edge")
 
     # Dimension of each np.array with floats reduced from 400 to 100
-    #reduced_dim_train_vectors = pca_reduce_dims(train_vectors, 100)
+    reduced_dim_train_vectors = pca_reduce_dims(train_vectors, 100)
     reduced_dim_train_vectors = train_vectors
 
     # Combine to split data set for ML
@@ -70,12 +70,12 @@ def get_train_test_set():
 
 if __name__ == "__main__":
     # A list of np.array of 0-1 floats indicating pixel density for each on index i corresponds to label on index i
-    train_vectors, train_labels = get_image_tuples(method="xD")
+    train_vectors, train_labels = get_image_tuples(method="hog")
     display_image(train_vectors[0], 20, 20, False)
 
     # Dimension of each np.array with floats reduced from 400 to 100
-    #reduced_dim_train_vectors = pca_reduce_dims(train_vectors, 100)
-    reduced_dim_train_vectors = train_vectors
+    reduced_dim_train_vectors = pca_reduce_dims(train_vectors, 100)
+    #reduced_dim_train_vectors = train_vectors
 
     # Combine to split data set for ML
     train_tuples = np.array([(reduced_dim_train_vectors[i], train_labels[i]) for i in range(len(train_labels))])
@@ -84,10 +84,10 @@ if __name__ == "__main__":
     train_set, test_set = train_tuples[:int(len(train_tuples)*0.8)], train_tuples[int(len(train_tuples)*0.8):]
 
     # Test that we can map it back again:
-    #display_image(train_set[0][0], 10, 10, False)
+    display_image(train_set[0][0], 10, 10, False)
 
 
 
     # Pickle the preprocessed data so we do not need to preprocess before training
-    pickle.dump(train_set, open("train_set.pickle", "wb"))
-    pickle.dump(test_set, open("test_set.pickle", "wb"))
+    #pickle.dump(train_set, open("train_set.pickle", "wb"))
+    #pickle.dump(test_set, open("test_set.pickle", "wb"))
