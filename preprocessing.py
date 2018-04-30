@@ -54,6 +54,7 @@ def display_image(image, original_width=20, original_height=20, zero_one_interva
     plt.show()
 
 
+<<<<<<< HEAD
 def get_train_test_set(method="none", pca=False):
     train_vectors, train_labels = get_image_tuples(method=method)
 
