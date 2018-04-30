@@ -14,7 +14,7 @@ def crop_image_input_fn(cropped_image):
 
 def sliding_window(classifier, image, resize_dims, window_side_pixels=20, stride=1):
     predictions = dict()
-    hard_to_look_at_characters = ["n", "l", "t", "p", "i"]
+    problem_characters = ["n", "l", "t", "p"]
 
     for dims_tuple in resize_dims:
         if dims_tuple != image.size:
@@ -33,16 +33,20 @@ def sliding_window(classifier, image, resize_dims, window_side_pixels=20, stride
 
                 # Check if above threshold for classification
                 if most_certain_logit > 4000:
-                    if character not in hard_to_look_at_characters:
+                    if character not in problem_characters:
                         predictions[(x,y)] = character
                     elif most_certain_logit > 7000:
                         predictions[(x, y)] = character
 
+    i = ImageDraw.Draw(image)
     for xy, c in predictions.items():
-        ImageDraw.Draw(image).rectangle(
-            xy=(xy[0], xy[1], xy[0]+window_side_pixels, xy[1]+window_side_pixels),
-            outline="red"
-        )
+        x, y = xy
+        if (x+1,y) in predictions.keys() and predictions[x+1,y] == c or\
+            (x-1,y) in predictions.keys() and predictions[x-1,y] == c or\
+            (x, y+1) in predictions.keys() and predictions[x,y+1] == c or\
+            (x, y-1) in predictions.keys() and predictions[x,y-1] == c:
+            i.rectangle(xy=(xy[0], xy[1], xy[0]+window_side_pixels, xy[1]+window_side_pixels), outline="orange")
+            # i.text(xy=(xy[0], xy[1]), text=c)
 
     image.show()
     return image
