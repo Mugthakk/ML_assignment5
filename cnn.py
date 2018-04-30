@@ -88,7 +88,8 @@ def cnn_model_fn(features, labels, mode):
     # Probabilities is a tensor as a result of mapping raw values through softmax
     predictions = {
         "classes": tf.argmax(input=logits, axis=1),
-        "probabilities": tf.nn.softmax(logits, name="softmax_tensor")
+        "probabilities": tf.nn.softmax(logits, name="softmax_tensor"),
+        "logits": logits
     }
 
     # Returning a EstimatorSpec object that is used for prediction by TensorFlow
