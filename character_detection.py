@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 import skimage.transform as ski
 import PIL.Image as Image
+from PIL import ImageDraw
 from collections import defaultdict
 
 
@@ -13,7 +14,6 @@ def crop_image_input_fn(cropped_image):
 
 def sliding_window(classifier, image, resize_dims, window_side_pixels=20, stride=1):
     predictions = dict()
-    box_num = 0
     hard_to_look_at_characters = ["n", "l", "t", "p"]
     chars_seen = defaultdict(list)
 
@@ -25,25 +25,28 @@ def sliding_window(classifier, image, resize_dims, window_side_pixels=20, stride
             image_x, image_y = image.size
         for x in range(0, image_x-window_side_pixels, stride):
             for y in range(0, image_y-window_side_pixels, stride):
-                box_num += 1
 
                 # Extracts a window by using cropping
                 cropped_image = image.crop((x, y, x+window_side_pixels, y+window_side_pixels))
                 preds = classifier({"x": np.reshape(cropped_image, window_side_pixels*window_side_pixels)})
-                predictions[box_num] = preds
+
                 most_certain_logit = max(preds["logits"][0])
                 character = chr(97+np.argmax(preds["probabilities"]))
+
                 if most_certain_logit > 4000:
+                    if character not in hard_to_look_at_characters:
+                        predictions[(x,y)] = character
                     chars_seen[character].append(most_certain_logit)
                 if most_certain_logit > 5000:
                     if character in hard_to_look_at_characters and most_certain_logit < 7000:
                         continue
-                    #print(max(preds["logits"][0]))
-                    #print(character)
-                    #cropped_image.show()
     for tup in chars_seen.items():
         print(tup)
+    for xy, c in predictions.items():
+        ImageDraw.Draw(image).rectangle((xy[0], xy[1], xy[0]+window_side_pixels, xy[1]+window_side_pixels),
+                                        outline="red")
     print(set(chars_seen.keys()).difference(set([x for x in "machinelearningandcasebasedreasoning"])))
+    image.show()
     return image
 
 
@@ -61,7 +64,7 @@ if __name__ == "__main__":
         classifier=predict_fn,
         image=image2,
         resize_dims=[(image2x, image2y)],
-        stride=2
+        stride=3
     ))
 
 
