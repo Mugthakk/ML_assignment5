@@ -6,56 +6,65 @@ def cnn_model_fn(features, labels, mode):
     # reshape -1 is the batch_size, dynamically computed based on number of inputs in features["x"] when -1 passed
     # 20, 20 bases itself on inputs having size 20x20
     # 1 is the number of channels per pixel, greyscale means one
-    input_layer = tf.reshape(features["x"], [-1, 10, 10, 1])
+    input_layer = tf.reshape(features["x"], [-1, 20, 20, 1])
 
-    # Applying 32 4x4 filters to the input (single value means square input images)
-    # Output is of shape [batch_size, 20, 20, 32]
     conv1 = tf.layers.conv2d(
         inputs=input_layer,
-        filters=32,
+        filters=64,
         kernel_size=[5,5],
         padding="same",
         activation=tf.nn.relu,
-        kernel_initializer=tf.initializers.random_normal(dtype=tf.float16),
+        kernel_initializer=tf.initializers.truncated_normal(stddev=0.5, dtype=tf.float32),
         name="conv1"
     )
 
     # Strides is the number of pixels between each of subregions to be extracted, pool-size is single value as square
-    # Output reduces width/height by 50% due to pool_size of 2, so output is of shape [batch_size, 10, 10, 32]
+    # Output reduces width/height by 1 due to strides, so output is of shape [batch_size, 19, 19, 64]
     pool1 = tf.layers.max_pooling2d(
         inputs=conv1,
         pool_size=[2,2],
         strides=1
     )
 
-    # Applying 64 5x5 filters
-    # Output is of shape [batch_size, 10, 10, 64]
     conv2 = tf.layers.conv2d(
         inputs=pool1,
         filters=64,
-        kernel_size=[5,5],
+        kernel_size=[3,3],
         padding="same",
         activation=tf.nn.relu,
-        kernel_initializer=tf.initializers.random_normal(dtype=tf.float16),
+        kernel_initializer=tf.initializers.truncated_normal(stddev=0.5, dtype=tf.float32),
         name="conv2"
     )
 
-    # Same kind of pooling as before
-    # Output is of shape [batch_size, 5, 5, 64]
     pool2 = tf.layers.max_pooling2d(
         inputs=conv2,
         pool_size=[2, 2],
         strides=1
     )
 
-    # Flatten the pool2 outputs as pool2-width * pool2-height * pool2-channels
-    # Output is of size [batch_size, 1600]
-    pool2_flat = tf.reshape(pool2, [-1, 8 * 8 * 64])
+    conv3 = tf.layers.conv2d(
+        inputs=pool2,
+        filters=128,
+        kernel_size=[1,1],
+        padding="same",
+        activation=tf.nn.relu,
+        kernel_initializer=tf.initializers.truncated_normal(stddev=0.5, dtype=tf.float32),
+        name="conv3"
+    )
+
+    pool3 = tf.layers.max_pooling2d(
+        inputs=conv3,
+        pool_size=[2,2],
+        strides=1
+    )
+
+    # Flatten the pool3 outputs as pool3-width * pool3-height * pool3-channels
+    pool3_flat = tf.reshape(pool3, [-1, 17 * 17 * 128])
 
     # Inputs the flattened pool-values into a dense layer of neurons with an activation function
     # Output is of shape [batch_size, 1024]
     dense = tf.layers.dense(
-        inputs=pool2_flat,
+        inputs=pool3_flat,
         units=1024,
         activation=tf.nn.relu
     )
@@ -64,7 +73,7 @@ def cnn_model_fn(features, labels, mode):
     # Output is of shape [batch_size, 1024]
     dropout = tf.layers.dropout(
         inputs=dense,
-        rate=0.4,
+        rate=0.5,
         training= mode == tf.estimator.ModeKeys.TRAIN
     )
 
@@ -84,7 +93,11 @@ def cnn_model_fn(features, labels, mode):
 
     # Returning a EstimatorSpec object that is used for prediction by TensorFlow
     if mode == tf.estimator.ModeKeys.PREDICT:
-        return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions)
+        return tf.estimator.EstimatorSpec(
+            mode=mode,
+            predictions=predictions,
+            export_outputs={"predictOutput": tf.estimator.export.PredictOutput(predictions)}
+        )
 
     loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
 
