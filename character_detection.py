@@ -11,32 +11,31 @@ def bad_image(i_p_a):
     if np.sum(i_p_a) == 255 * len(i_p_a):
         return True
 
-    # Check if there is a window of 3 white columns in the picture (this is porbably a space between pictures
-    full_column_whites = [0 for _ in range(20)]
-    sequence_length = 0
+    column_whites = [0 for _ in range(20)]
+    row_whites = [0 for _ in range(20)]
+
+    col_sequence_length = 0
+    row_sequence_length = 0
+
+    # Check if there is any pair of columns that are mostly white, indicates a spacing between letters/bad box
     for i in range(20):
-        full_column_whites[i] = sum([i_p_a[j] == 255 for j in range(i, 400, 20)]) >= 15
-        if full_column_whites[i]:
-            sequence_length += 1
-            if sequence_length > 2:
+        column_whites[i] = sum([i_p_a[j] == 255 for j in range(i, 400, 20)]) >= 15
+        if column_whites[i]:
+            col_sequence_length += 1
+            if col_sequence_length > 1:
                 return True
         else:
-            sequence_length = 0
+            col_sequence_length = 0
 
-
-    # If both two top or bottom rows of the image are white then this is an error
-    if np.sum(np.vectorize(lambda p: p == 255)(i_p_a[:40])) >= 30 or\
-            np.sum(np.vectorize(lambda p: p == 255)(i_p_a[-41:])) >= 30:
-        return True
-
-    if sum([i_p_a[i]==255 for i in range(0, 400, 20)]) + sum([i_p_a[i]==255 for i in range(0, 400, 20)]) >= 39 or\
-            sum([i_p_a[i]==255 for i in range(18, 400, 20)]) + sum([i_p_a[i+1]==255 for i in range(18, 400, 20)]) >= 39:
-        return True
-
-    num_whites = np.sum(np.vectorize(lambda p: p == 255)(i_p_a))
-
-    if num_whites > 250:
-        return True
+        # Check if there is any pair of rows that are mostly white, indicates a spacing between letters/bad box
+    for i in range(20):
+        row_whites[i] = sum([p == 255 for p in i_p_a[40*i:40*(i+1)]]) >= 15
+        if row_whites[i]:
+            row_sequence_length += 1
+            if row_sequence_length > 0:
+                return True
+        else:
+            row_sequence_length = 0
 
     return False
 
@@ -76,7 +75,7 @@ def sliding_window(classifier, image, window_side_pixels=20, stride=1):
             og_character = chr(97 + np.argmax(preds["probabilities"]))
 
             # Check if above threshold for classification
-            if og_most_certain_logit > 4000:
+            if og_most_certain_logit > 2000:
 
                 # Test if any of the previous ones have been classified as something
                 for i in range(1,6):
@@ -101,7 +100,7 @@ def sliding_window(classifier, image, window_side_pixels=20, stride=1):
                         best_char = character
 
                 # Check if above threshold for classification
-                if best_mcl > og_most_certain_logit and best_mcl > 4000:
+                if best_mcl > og_most_certain_logit and best_mcl > 2000:
                     for i in range(1, 6):
                         if (x, y - i) in predictions.keys():
                             continue
