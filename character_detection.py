@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 import skimage.transform as ski
 import PIL.Image as Image
-from PIL import ImageDraw
+from PIL import ImageDraw, ImageFont
 
 
 def bad_image(i_p_a):
@@ -27,7 +27,7 @@ def bad_image(i_p_a):
         else:
             col_sequence_length = 0
 
-        # Check if there is any pair of rows that are mostly white, indicates a spacing between letters/bad box
+    # Check if there is any pair of rows that are mostly white, indicates a spacing between letters/bad box
     for i in range(20):
         row_whites[i] = sum([p == 255 for p in i_p_a[40*i:40*(i+1)]]) >= 15
         if row_whites[i]:
@@ -78,7 +78,7 @@ def sliding_window(classifier, image, window_side_pixels=20, stride=1):
             if og_most_certain_logit > 2000:
 
                 # Test if any of the previous ones have been classified as something
-                for i in range(1,6):
+                for i in range(1, 6):
                     if (x, y-i) in predictions.keys():
                         continue
 
@@ -89,7 +89,7 @@ def sliding_window(classifier, image, window_side_pixels=20, stride=1):
             else:
                 best_mcl = 0
                 best_char = None
-                for i in range(1,4):
+                for i in range(0,4):
                     turned = cropp.rotate(i*90)
                     turned_vector = np.reshape(turned, window_side_pixels*window_side_pixels)
                     preds = classifier({"x": turned_vector})
@@ -116,8 +116,8 @@ def sliding_window(classifier, image, window_side_pixels=20, stride=1):
     # Only draw a box if there are several boxes in the same area agreeing with this classification
     for xy, c in predictions.items():
         x, y = xy
-        i.rectangle(xy=(xy[0], xy[1], xy[0]+window_side_pixels, xy[1]+window_side_pixels), outline="orange")
-        # i.text(xy=(xy[0], xy[1]), text=c)
+        i.rectangle(xy=(xy[0], xy[1], xy[0]+window_side_pixels, xy[1]+window_side_pixels), outline="green")
+        i.text(xy=(xy[0]+window_side_pixels/2, xy[1]+window_side_pixels+5), text=c, fill="red", font=ImageFont.load_default())
     rgb.show()
     return rgb
 
