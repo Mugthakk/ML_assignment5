@@ -10,33 +10,35 @@ def bad_image(i_p_a):
     # All white = bad
     if np.sum(i_p_a) == 255 * len(i_p_a):
         return True
+
+    # Check if there is a window of 3 white columns in the picture (this is porbably a space between pictures
+    full_column_whites = [0 for _ in range(20)]
+    sequence_length = 0
+    for i in range(20):
+        full_column_whites[i] = sum([i_p_a[j] == 255 for j in range(i, 400, 20)]) >= 15
+        if full_column_whites[i]:
+            sequence_length += 1
+            if sequence_length > 2:
+                return True
+        else:
+            sequence_length = 0
+
+
     # If both two top or bottom rows of the image are white then this is an error
-    if np.sum(i_p_a[:40]) >= 255*39 or np.sum(i_p_a[-41:]) >= 255*39:
+    if np.sum(np.vectorize(lambda p: p == 255)(i_p_a[:40])) >= 30 or\
+            np.sum(np.vectorize(lambda p: p == 255)(i_p_a[-41:])) >= 30:
         return True
 
-    og_color = i_p_a[0]
+    if sum([i_p_a[i]==255 for i in range(0, 400, 20)]) + sum([i_p_a[i]==255 for i in range(0, 400, 20)]) >= 39 or\
+            sum([i_p_a[i]==255 for i in range(18, 400, 20)]) + sum([i_p_a[i+1]==255 for i in range(18, 400, 20)]) >= 39:
+        return True
 
-    two_connected_sides_white = og_color == 255 and i_p_a[19] == 255 or \
-                                og_color == 255 and i_p_a[-20] == 255 or \
-                                i_p_a[19] == 255 and i_p_a[-1] == 255 or \
-                                i_p_a[-20] == 255 and i_p_a[-1] == 255
-    all_corners_white = og_color == 255 and i_p_a[19] == 255 and i_p_a[-20] == 255 and i_p_a[-1] == 255
     num_whites = np.sum(np.vectorize(lambda p: p == 255)(i_p_a))
 
-    if num_whites > 200:
-        return True
-
-    if two_connected_sides_white and num_whites > 100 and not all_corners_white:
+    if num_whites > 250:
         return True
 
     return False
-
-
-def close_similar_predictions(predictions, x, y, c):
-    return (x + 1, y) in predictions.keys() and predictions[x + 1, y] == c or \
-                 (x - 1, y) in predictions.keys() and predictions[x - 1, y] == c or \
-                 (x, y + 1) in predictions.keys() and predictions[x, y + 1] == c or \
-                 (x, y - 1) in predictions.keys() and predictions[x, y - 1] == c
 
 
 def sliding_window(classifier, image, window_side_pixels=20, stride=1):
@@ -49,7 +51,7 @@ def sliding_window(classifier, image, window_side_pixels=20, stride=1):
 
     # Based on the training images we ignore the outlying pixels
     for y in range(40, image_y-2*window_side_pixels, stride):
-        for x in range(40, image_x-2*window_side_pixels, stride):
+        for x in range(40, image_x-1*window_side_pixels, stride):
 
             # Flags to ignore if we have set a box already
             if ignore_to_x and ignore_to_x > x:
@@ -74,11 +76,11 @@ def sliding_window(classifier, image, window_side_pixels=20, stride=1):
             og_character = chr(97 + np.argmax(preds["probabilities"]))
 
             # Check if above threshold for classification
-            if og_most_certain_logit> 4000:
+            if og_most_certain_logit > 4000:
 
                 # Test if any of the previous ones have been classified as something
                 for i in range(1,6):
-                    if (x,y-i) in predictions.keys():
+                    if (x, y-i) in predictions.keys():
                         continue
 
                 ignore_to_x = x + 20
@@ -115,7 +117,6 @@ def sliding_window(classifier, image, window_side_pixels=20, stride=1):
     # Only draw a box if there are several boxes in the same area agreeing with this classification
     for xy, c in predictions.items():
         x, y = xy
-        #if close_similar_predictions(predictions, x, y, c):
         i.rectangle(xy=(xy[0], xy[1], xy[0]+window_side_pixels, xy[1]+window_side_pixels), outline="orange")
         # i.text(xy=(xy[0], xy[1]), text=c)
     rgb.show()
