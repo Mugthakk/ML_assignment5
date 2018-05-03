@@ -43,14 +43,12 @@ def bad_image(i_p_a):
 def sliding_window(classifier, image, window_side_pixels=20, stride=1):
     predictions = dict()
     image_x, image_y = image.size
-
-
     ignore_to_x = False
     reset_y = 41
 
     # Based on the training images we ignore the outlying pixels
-    for y in range(40, image_y-2*window_side_pixels, stride):
-        for x in range(40, image_x-1*window_side_pixels, stride):
+    for y in range(20, image_y-2*window_side_pixels, stride):
+        for x in range(20, image_x-1*window_side_pixels, stride):
 
             # Flags to ignore if we have set a box already
             if ignore_to_x and ignore_to_x > x:
@@ -71,55 +69,40 @@ def sliding_window(classifier, image, window_side_pixels=20, stride=1):
 
             # Make prediction from model and save logit-value as well as character predicted
             preds = classifier({"x": cropped_image})
-            og_most_certain_logit = max(preds["logits"][0])
-            og_character = chr(97 + np.argmax(preds["probabilities"]))
+            best_mcl = max(preds["logits"][0])
+            best_char = chr(97 + np.argmax(preds["probabilities"]))
+
+            # Rotate the picture to see if any characters were rotated
+            for deg in [90, 180, 270]:
+                turned = cropp.rotate(deg)
+                turned_vector = np.reshape(turned, window_side_pixels*window_side_pixels)
+                preds = classifier({"x": turned_vector})
+                most_certain_logit = max(preds["logits"][0])
+                character = chr(97+np.argmax(preds["probabilities"]))
+
+                # Unstable classifier due to some poor examples in data set, hence 1000 to replace guess after rotate
+                if character != best_char and most_certain_logit > best_mcl + 1000:
+                    best_mcl = most_certain_logit
+                    best_char = character
 
             # Check if above threshold for classification
-            if og_most_certain_logit > 2000:
-
-                # Test if any of the previous ones have been classified as something
-                for i in range(1, 6):
-                    if (x, y-i) in predictions.keys():
-                        continue
-
-                ignore_to_x = x + 20
-                reset_y = y+1
-                predictions[(x, y)] = og_character
-
-            else:
-                best_mcl = 0
-                best_char = None
-                for i in range(0,4):
-                    turned = cropp.rotate(i*90)
-                    turned_vector = np.reshape(turned, window_side_pixels*window_side_pixels)
-                    preds = classifier({"x": turned_vector})
-                    most_certain_logit = max(preds["logits"][0])
-                    character = chr(97+np.argmax(preds["probabilities"]))
-                    if most_certain_logit > best_mcl:
-                        best_mcl = most_certain_logit
-                        best_char = character
-
-                # Check if above threshold for classification
-                if best_mcl > og_most_certain_logit and best_mcl > 2000:
-                    for i in range(1, 6):
-                        if (x, y - i) in predictions.keys():
-                            continue
-                    ignore_to_x = x + 20
-                    reset_y = y + 1
-                    predictions[(x,y)] = best_char
+            ignore_to_x = x + 20
+            reset_y = y + 1
+            predictions[(x, y)] = best_char
 
     # RGB so we can see the marked classifications
     rgb = Image.new("RGBA", image.size)
     rgb.paste(image)
     i = ImageDraw.Draw(rgb)
 
-    # Only draw a box if there are several boxes in the same area agreeing with this classification
+    # Draw a box to indicate a classified character along with prediction as text
     for xy, c in predictions.items():
-        x, y = xy
         i.rectangle(xy=(xy[0], xy[1], xy[0]+window_side_pixels, xy[1]+window_side_pixels), outline="green")
         i.text(xy=(xy[0]+window_side_pixels/2, xy[1]+window_side_pixels+5), text=c, fill="red", font=ImageFont.load_default())
+
     rgb.show()
-    return rgb
+
+    rgb.save("image2_1000_better_to_change"+".png")
 
 
 if __name__ == "__main__":
@@ -129,16 +112,11 @@ if __name__ == "__main__":
 
     predict_fn = tf.contrib.predictor.from_saved_model("savedmodels_3cnn_tweak/1525084475")
 
-    print(sliding_window(
+    sliding_window(
         classifier=predict_fn,
         image=image2,
         stride=1
-    ))
-
-    import datetime
-    print(datetime.datetime.now())
-
-
+    )
 
 
 
