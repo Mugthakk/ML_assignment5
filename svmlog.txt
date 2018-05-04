@@ -4,5 +4,22 @@ svm 0.59....           hog, no pca, c = 1.1 , linear kernel, degree = 3
 svm 0.6043569922698524 hog, no pca, c = 0.9 , linear kernel, degree = 3
 svm 0.607167955024596  hog, no pca, c = 0.85 , linear kernel, degree = 3
 svm 0.607167955024596  hog,pca 100, c = 0.85 , linear kernel, degree = 3
-svm total shit         hog, pca 10, c = 0.85 , linear kernel, degree = 3
+svm very bad           hog, pca 10, c = 0.85 , linear kernel, degree = 3
 svm 0.6057624736472241 hog, no pca, c = 0.80 , linear kernel, degree = 3
+svm 0.6753338018271258 hog, no pca, kernel='rbf', C=1, gamma=0.1 degree = 3
+svm 0.7118763176387913 hog, no pca,  kernel='rbf', C=1, gamma=0.2
+svm 0.7132817990161631 hog, no pca,  kernel='rbf', C=1, gamma=0.3
+svm 0.7160927617709065 hog, no pca, kernel='rbf', C=1, gamma=0.25
+svm 0.7210119465917076 hog, no pca, kernel='rbf', C=1.1, gamma=0.25
+svm 0.7266338721011947 hog, no pca, kernel='rbf', C=1.2, gamma=0.25
+svm 0.7491215741391427 hog, no pca, kernel='rbf', C=2, gamma=0.25
+svm 0.752635277582572  hog, no pca, kernel='rbf', C=3, gamma=0.25
+svm 0.7554462403373156 hog  no pca, kernel='rbf', C=3.6, gamma=0.25
+svm 0.7596626844694307 hog  pca = 80, kernel='rbf', C=3.6, gamma=0.25
+svm 0.7617709065354884 hog  pca = 75, kernel='rbf', C=3.6, gamma=0.25
+svm 0.7617709065354884 hog  pca = 70, kernel='rbf', C=3.6, gamma=0.25
+svm 0.763879128601546  hog  pca = 70, kernel='rbf', C=3.5, gamma=0.25
+svm 0.7645818692902319 hog  pca = 70, kernel='rbf', C=3.4, gamma=0.25
+svm 0.7652846099789178 hog  pca = 70, kernel='rbf', C=3.35, gamma=0.25
+svm 0.7547434996486296 hog, no pca, kernel='rbf', C=4, gamma=0.25
+svm 0.7505270555165144 hog, no pca, kernel='rbf', C=8, gamma=0.25

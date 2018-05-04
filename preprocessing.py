@@ -54,12 +54,12 @@ def display_image(image, original_width=20, original_height=20, zero_one_interva
     plt.show()
 
 
-def get_train_test_set(method="none", pca=False):
+def get_train_test_set(method="hog", pca=1):
     train_vectors, train_labels = get_image_tuples(method=method)
 
     if pca and type(pca) == int:
         # Dimension of each np.array with floats reduced from 400 to 100
-        train_vectors = pca_reduce_dims(train_vectors, 100)
+        train_vectors = pca_reduce_dims(train_vectors, 70)
     else:
         train_vectors = train_vectors
 

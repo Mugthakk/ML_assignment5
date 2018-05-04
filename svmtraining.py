@@ -15,8 +15,9 @@ train_labels = np.array([train_set[i][1] for i in range(len(train_set))])
 test_labels = np.array([test_set[i][1] for i in range(len(test_set))])
 
 # Love linear kernel, pca makes no difference , hog
-# kernel = 'rbf' will perform badly
-svc = SVC(kernel='linear', C=0.85)
+# hog  pca = 70, kernel='rbf', C=3.4, gamma=0.25 .... very nice
+# kernel='sigmoid' makes me sad :(
+svc = SVC(kernel='rbf', C=3.4, gamma=0.25)
 svc.fit(X=train_features, y=train_labels)  # train the model
 y_prediction_svc_train = svc.predict(train_features)
 y_prediction_svc_test = svc.predict(test_features)
@@ -30,8 +31,7 @@ def eval_accuracy(true_label, pred_label):
     return correct/len(true_label)
 
 
-# TODO plot the data less retarded
-def plot_confusion_matrix(cm, title='results', cmap=plt.cm.Reds):
+def plot_confusion_matrix(cm, title='Confusion Matrix SVM', cmap=plt.cm.Greens):
     classes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9','10',
                '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20',
                '20', '21', '22', '23', '24', '25']
@@ -42,7 +42,7 @@ def plot_confusion_matrix(cm, title='results', cmap=plt.cm.Reds):
     tick_marks = np.arange(len(classes))
     plt.xticks(tick_marks, classes, rotation=45)
     plt.yticks(tick_marks, classes)
-    fmt = '.1f'
+    fmt = '.2f'
     thresh = cm.max() / 2.
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
         plt.text(j, i, format(cm[i, j], fmt),
