@@ -14,9 +14,7 @@ test_features = np.array([test_set[i][0] for i in range(len(test_set))])
 train_labels = np.array([train_set[i][1] for i in range(len(train_set))])
 test_labels = np.array([test_set[i][1] for i in range(len(test_set))])
 
-# Love linear kernel, pca makes no difference , hog
-# hog  pca = 70, kernel='rbf', C=3.4, gamma=0.25 .... very nice
-# kernel='sigmoid' makes me sad :(
+# hog  pca = 70, kernel='rbf', C=3.4, gamma=0.25 leads to good results.
 svc = SVC(kernel='rbf', C=3.4, gamma=0.25)
 svc.fit(X=train_features, y=train_labels)  # train the model
 y_prediction_svc_train = svc.predict(train_features)
