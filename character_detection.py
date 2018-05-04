@@ -1,6 +1,5 @@
 import numpy as np
 import tensorflow as tf
-import skimage.transform as ski
 import PIL.Image as Image
 from PIL import ImageDraw, ImageFont
 
@@ -102,8 +101,6 @@ def sliding_window(classifier, image, window_side_pixels=20, stride=1):
 
     rgb.show()
 
-    rgb.save("image2_1000_better_to_change"+".png")
-
 
 if __name__ == "__main__":
 
@@ -111,6 +108,12 @@ if __name__ == "__main__":
     image2 = Image.open("detection-images/detection-2.jpg")
 
     predict_fn = tf.contrib.predictor.from_saved_model("savedmodels_3cnn_tweak/1525084475")
+
+    sliding_window(
+        classifier=predict_fn,
+        image=image1,
+        stride=1
+    )
 
     sliding_window(
         classifier=predict_fn,

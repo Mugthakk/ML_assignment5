@@ -3,11 +3,12 @@ import numpy as np
 from preprocessing import get_train_test_set
 from cnn import cnn_model_fn
 
-train_set, test_set = get_train_test_set()
+# Get the preprocessed training set
+train_set, test_set = get_train_test_set(method="none", pca=False)
 
 sess = tf.Session(config=tf.ConfigProto(log_device_placement=True, allow_soft_placement=True))
 
-
+# Convert the data to format for TensorFlow
 train_features = []
 train_labels = []
 for i in range(len(train_set)):
@@ -23,6 +24,7 @@ train_labels = np.asarray(train_labels, dtype=np.int32)
 test_features = np.array(test_features, dtype=np.float32)
 test_labels = np.asarray(test_labels, dtype=np.int32)
 
+# Initialize the estimator
 classifier = tf.estimator.Estimator(
     model_fn=cnn_model_fn,
     model_dir="savedmodels_3cnn_tweak/",
@@ -46,15 +48,15 @@ eval_input_fn = tf.estimator.inputs.numpy_input_fn(
     queue_capacity=1000,
 )
 
-
 classifier.train(
     input_fn=train_input_fn,
-    steps=10000
+    steps=20000
 )
 
 eval_results = classifier.evaluate(input_fn=eval_input_fn)
 print(eval_results)
 
+# Save the trained model for later use
 feature_spec = {"x": tf.placeholder(shape=[400], dtype=tf.float32)}
 input_receiver_fn = tf.estimator.export.build_raw_serving_input_receiver_fn(feature_spec)
 classifier.export_savedmodel(export_dir_base="savedmodels_3cnn_tweak/",
